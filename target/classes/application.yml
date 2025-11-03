@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:8081}
+  address: 0.0.0.0
+
+spring:
+  datasource:
+    url: jdbc:postgresql://caboose.proxy.rlwy.net:25093/railway
+    username: postgres
+    password: QGnlKOBUUqDfZVYSmkUppFWIHHOSRExM
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+app:
+  name: order-service
