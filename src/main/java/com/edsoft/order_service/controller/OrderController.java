@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
-@CrossOrigin
+@CrossOrigin("https://beachorder.up.railway.app/")
 public class OrderController {
 
     @Autowired
