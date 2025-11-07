@@ -67,4 +67,12 @@ public class Product {
     public void setPrice(Double price) {
         this.price = price;
     }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 }
