@@ -2,26 +2,30 @@ package com.edsoft.order_service.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "orders")
 @Data
 public class Order {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String customerUsername; // auth'dan gelen user
+    private String status;
 
-    @Column(nullable=false)
-    private String status; // CREATED, PROCESSING, DELIVERED
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<Item> items;
 
-    private Instant createdAt = Instant.now();
+    private BigDecimal total;
 
-    //Getter and Setter
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public Long getId() {
         return id;
@@ -29,14 +33,6 @@ public class Order {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getCustomerUsername() {
-        return customerUsername;
-    }
-
-    public void setCustomerUsername(String customerUsername) {
-        this.customerUsername = customerUsername;
     }
 
     public String getStatus() {
@@ -47,11 +43,27 @@ public class Order {
         this.status = status;
     }
 
-    public Instant getCreatedAt() {
+    public List<Item> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Item> items) {
+        this.items = items;
+    }
+
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
+
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

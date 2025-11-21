@@ -1,5 +1,5 @@
 server:
-port: ${PORT:8085}
+port: ${PORT:8080}
 address: 0.0.0.0
 
 spring:
@@ -9,7 +9,11 @@ spring:
     password: nMpDMwZgOKrKFsRiJjByypIMgHLgdXIb
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+product:
+  service:
+    url: https://productservice.up.railway.app
