@@ -1,11 +1,14 @@
 package com.edsoft.order_service.controller;
 
 import com.edsoft.order_service.data.OrderCreateRequest;
+import com.edsoft.order_service.data.OrderListResponse;
 import com.edsoft.order_service.model.Order;
 import com.edsoft.order_service.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -27,12 +30,13 @@ public class OrderController {
         return ResponseEntity.ok(orderService.listAllOrders());
     }
 
-    @GetMapping("all")
+    @PostMapping("/{id}/deliver")
+    public Order deliver(@PathVariable Long id) { return orderService.markDelivered(id); }
+*/
+
+    @GetMapping("/list")
     public List<Order> allOrders() {
         return orderService.listAllOrders();
     }
 
-    @PostMapping("/{id}/deliver")
-    public Order deliver(@PathVariable Long id) { return orderService.markDelivered(id); }
-    */
 }

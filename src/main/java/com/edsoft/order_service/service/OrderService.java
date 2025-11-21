@@ -3,19 +3,15 @@ package com.edsoft.order_service.service;
 import com.edsoft.order_service.client.ProductClient;
 import com.edsoft.order_service.data.OrderCreateRequest;
 import com.edsoft.order_service.data.ProductResponse;
-import com.edsoft.order_service.model.Item;
+import com.edsoft.order_service.model.Bill;
 import com.edsoft.order_service.model.Order;
 import com.edsoft.order_service.repository.OrderRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -32,27 +28,61 @@ public class OrderService {
     }
 
     public Order createOrder(OrderCreateRequest req) {
-        List<ProductResponse> products = req.getItems().stream()
-                .map(i -> productClient.getProduct(i.getProductId()))
+
+        // 1) Ürünleri çek
+        List<Long> productIds = req.getItems()
+                .stream()
+                .map(OrderCreateRequest.OrderItemRequest::getProductId)
                 .toList();
 
-        List<Item> snapshot = new ArrayList<>();
+        List<ProductResponse> products = new ArrayList<>();
+
+        for (Long productId : productIds) {
+            ProductResponse product = productClient.getProduct(productId);
+            products.add(product);
+        }
+
+        List<Bill> bills = new ArrayList<>();
+
+        // 3) Order oluştur
+        Order order = new Order();
+        order.setStatus("Pending");
+
+        // 2) Toplam fiyatı hesapla
         BigDecimal total = BigDecimal.ZERO;
 
         for (int i = 0; i < req.getItems().size(); i++) {
-            var itemReq = req.getItems().get(i);
-            var product = products.get(i);
-            BigDecimal price = Optional.ofNullable(product.getPrice()).orElse(BigDecimal.ZERO);
+            OrderCreateRequest.OrderItemRequest itemReq = req.getItems().get(i);
+            ProductResponse product = products.get(i);
 
-            total = total.add(price.multiply(BigDecimal.valueOf(itemReq.getQty())));
+            BigDecimal price = product.getPrice() != null
+                    ? product.getPrice()
+                    : BigDecimal.ZERO;
 
-            snapshot.add(new Item(product.getName(), price, itemReq.getQty()));
+            BigDecimal itemTotal = price.multiply(BigDecimal.valueOf(itemReq.getQty()));
+
+            total = total.add(itemTotal);
+            Bill bill = new Bill();
+
+            for (OrderCreateRequest.OrderItemRequest itemRequest : req.getItems()){
+                bill.setPiece(itemRequest.getQty());
+            }
+
+            bill.setProductName(product.getName());
+            bills.add(bill);
         }
 
-        Order order = new Order();
-        order.setStatus("PENDING");
         order.setTotal(total);
+        order.setBills(bills);
 
         return orderRepository.save(order);
+    }
+
+
+    public List<Order> listAllOrders() {
+
+        List<Order> orders = orderRepository.findAll();
+
+        return orders;
     }
 }

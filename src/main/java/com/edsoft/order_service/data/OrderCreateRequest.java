@@ -6,12 +6,13 @@ import java.util.List;
 
 @Data
 public class OrderCreateRequest {
-        private List<OrderItemRequest> items;
+    private List<OrderItemRequest> items;
 
-        @Data
-        public static class OrderItemRequest {
-            private Long productId;
-            private Integer qty;
+    @Data
+    public static class OrderItemRequest {
+        private Long productId;
+        private String productName;
+        private Integer qty;
 
         public Long getProductId() {
             return productId;
@@ -19,6 +20,14 @@ public class OrderCreateRequest {
 
         public void setProductId(Long productId) {
             this.productId = productId;
+        }
+
+        public String getProductName() {
+            return productName;
+        }
+
+        public void setProductName(String productName) {
+            this.productName = productName;
         }
 
         public Integer getQty() {

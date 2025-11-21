@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 public class ProductClient {
 
@@ -22,6 +25,15 @@ public class ProductClient {
                 .uri(productServiceUrl + "/api/products/list/" + productId)
                 .retrieve()
                 .bodyToMono(ProductResponse.class)
+                .block();
+    }
+
+    public List<ProductResponse> getAllProduct() {
+        return webClient.get()
+                .uri(productServiceUrl + "/api/products/list")
+                .retrieve()
+                .bodyToFlux(ProductResponse.class)
+                .collectList()
                 .block();
     }
 }
