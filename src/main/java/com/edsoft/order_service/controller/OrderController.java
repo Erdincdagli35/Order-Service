@@ -24,19 +24,20 @@ public class OrderController {
         return ResponseEntity.status(200).body(created);
     }
 
-    /*
-    @GetMapping
-    public ResponseEntity<List<Order>> myOrders(Principal principal) {
-        return ResponseEntity.ok(orderService.listAllOrders());
-    }
-
-    @PostMapping("/{id}/deliver")
-    public Order deliver(@PathVariable Long id) { return orderService.markDelivered(id); }
-*/
 
     @GetMapping("/list")
     public List<Order> allOrders() {
         return orderService.listAllOrders();
     }
 
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<Order> editOrder(@PathVariable Long id, @RequestBody OrderCreateRequest req) {
+        Order edited = orderService.editOrder(id, req);
+        return ResponseEntity.status(200).body(edited);
+    }
+
+    @GetMapping("/list/{id}")
+    public ResponseEntity<List<Order>> findOrder(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.listOrder(id));
+    }
 }
