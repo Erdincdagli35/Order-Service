@@ -19,6 +19,14 @@ public class Item {
         this.price = price;
     }
 
+    public Item(String name, BigDecimal price, Integer qty) {
+        this.name = name;
+        this.quantity = qty;
+        this.price = price;
+    }
+
+
+
     // Getter & Setter
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

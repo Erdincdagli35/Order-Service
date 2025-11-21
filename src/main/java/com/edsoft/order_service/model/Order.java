@@ -1,13 +1,10 @@
 package com.edsoft.order_service.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "orders")
@@ -19,9 +16,6 @@ public class Order {
     private Long id;
 
     private String status;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    private List<Item> items;
 
     private BigDecimal total;
 
@@ -41,14 +35,6 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public List<Item> getItems() {
-        return items;
-    }
-
-    public void setItems(List<Item> items) {
-        this.items = items;
     }
 
     public BigDecimal getTotal() {

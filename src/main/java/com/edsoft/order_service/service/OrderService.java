@@ -6,18 +6,16 @@ import com.edsoft.order_service.data.ProductResponse;
 import com.edsoft.order_service.model.Item;
 import com.edsoft.order_service.model.Order;
 import com.edsoft.order_service.repository.OrderRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -28,56 +26,33 @@ public class OrderService {
     @Autowired
     private final OrderRepository orderRepository;
 
-    @Autowired
-    private final ObjectMapper objectMapper;
-
-    public OrderService(ProductClient productClient, OrderRepository orderRepository, ObjectMapper objectMapper) {
+    public OrderService(ProductClient productClient, OrderRepository orderRepository) {
         this.productClient = productClient;
         this.orderRepository = orderRepository;
-        this.objectMapper = objectMapper;
     }
 
     public Order createOrder(OrderCreateRequest req) {
-
-        // 1) Ürünleri product service'den çek
         List<ProductResponse> products = req.getItems().stream()
                 .map(i -> productClient.getProduct(i.getProductId()))
                 .toList();
 
-        // 2) Snapshot oluştur
-        BigDecimal total = BigDecimal.ZERO;
         List<Item> snapshot = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
 
         for (int i = 0; i < req.getItems().size(); i++) {
-            OrderCreateRequest.OrderItemRequest itemReq = req.getItems().get(i); // tip explicit
-            ProductResponse product = products.get(i);        // tip explicit
+            var itemReq = req.getItems().get(i);
+            var product = products.get(i);
+            BigDecimal price = Optional.ofNullable(product.getPrice()).orElse(BigDecimal.ZERO);
 
-            BigDecimal productPrice = product.getPrice() != null
-                    ? product.getPrice()  // direkt BigDecimal olarak al
-                    : BigDecimal.ZERO;
+            total = total.add(price.multiply(BigDecimal.valueOf(itemReq.getQty())));
 
-
-
-            BigDecimal lineTotal = productPrice.multiply(BigDecimal.valueOf(itemReq.getQty()));
-            total = total.add(lineTotal);
-
-            Item item = new Item();
-            item.setName(Objects.toString(product.getName(), ""));
-            item.setQuantity(itemReq.getQty());
-            item.setPrice(productPrice);
-
-            snapshot.add(item);
+            snapshot.add(new Item(product.getName(), price, itemReq.getQty()));
         }
 
-        // 3) Order entity oluştur
         Order order = new Order();
         order.setStatus("PENDING");
-        order.setItems(snapshot);  // artık List<Item> olarak set ediliyor
         order.setTotal(total);
 
-        // 4) DB'ye kaydet
-        orderRepository.save(order);
-
-        return order;
+        return orderRepository.save(order);
     }
 }
