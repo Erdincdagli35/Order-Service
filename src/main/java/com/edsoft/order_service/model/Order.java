@@ -24,7 +24,8 @@ public class Order {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @ElementCollection
-    @CollectionTable(name = "order_bills", joinColumns = @JoinColumn(name = "order_id"))    private List<Bill> bills = new ArrayList<>();
+    @CollectionTable(name = "order_bills", joinColumns = @JoinColumn(name = "order_id"))
+    private List<Bill> bills = new ArrayList<>();
 
     public Long getId() {
         return id;
