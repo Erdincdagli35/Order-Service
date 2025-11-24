@@ -88,12 +88,11 @@ public class OrderService {
 
     public List<Order> listAllOrders() {
 
-        List<Order> orders = orderRepository.findAll();
-
+        List<Order> orders = orderRepository.findAllByOrderByIdDesc();
         return orders;
     }
 
-    public @Nullable List<Order> listOrder(Long id) {
+    public @Nullable Order listOrder(Long id) {
         return orderRepository.findOneById(id);
     }
 
@@ -148,5 +147,10 @@ public class OrderService {
         order.setBills(bills);
 
         return orderRepository.save(order);
+    }
+
+    public void cancelOrder(Long id) {
+        Order order = orderRepository.findOneById(id);
+        orderRepository.delete(order);
     }
 }

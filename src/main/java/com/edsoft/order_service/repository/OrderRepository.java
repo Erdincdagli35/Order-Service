@@ -9,5 +9,7 @@ import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    @Nullable List<Order> findOneById(Long id);
+    @Nullable Order findOneById(Long id);
+
+    List<Order> findAllByOrderByIdDesc();
 }
