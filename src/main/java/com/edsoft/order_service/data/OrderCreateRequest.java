@@ -2,11 +2,13 @@ package com.edsoft.order_service.data;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
 public class OrderCreateRequest {
     private List<OrderItemRequest> items;
+    private BigDecimal personalId;
 
     @Data
     public static class OrderItemRequest {
@@ -45,5 +47,13 @@ public class OrderCreateRequest {
 
     public void setItems(List<OrderItemRequest> items) {
         this.items = items;
+    }
+
+    public BigDecimal getPersonalId() {
+        return personalId;
+    }
+
+    public void setPersonalId(BigDecimal personalId) {
+        this.personalId = personalId;
     }
 }

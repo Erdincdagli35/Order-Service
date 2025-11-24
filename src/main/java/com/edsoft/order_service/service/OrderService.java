@@ -80,7 +80,8 @@ public class OrderService {
 
             Bill bill = new Bill();
             bill.setProductName(product.getName());
-            bill.setPiece(qty);                     // doğru adet burada set ediliyor
+            bill.setPiece(qty);
+            bill.setPersonalId(req.getPersonalId());
             bills.add(bill);
         }
 
@@ -89,14 +90,13 @@ public class OrderService {
         order.setStatus("Pending");
         order.setTotal(total.setScale(2, RoundingMode.HALF_UP));
         order.setBills(bills);
+        order.setPersonalId(req.getPersonalId());
 
-        // Eğer Bill nesneleri cascade ayarlıysa repo.save ile birlikte kaydolur; değilse önce bill repository kullan
         return orderRepository.save(order);
     }
 
 
     public List<Order> listAllOrders() {
-
         List<Order> orders = orderRepository.findAllByOrderByIdDesc();
         return orders;
     }
