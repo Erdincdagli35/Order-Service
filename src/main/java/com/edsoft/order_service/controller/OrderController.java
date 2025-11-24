@@ -19,11 +19,10 @@ public class OrderController {
     OrderService orderService;
 
     @PostMapping("/create")
-    public ResponseEntity<Order> createOrder(@RequestBody OrderCreateRequest req) {
+    public ResponseEntity<Order> createOrder(@RequestBody OrderCreateRequest req) throws Exception {
         Order created = orderService.createOrder(req);
         return ResponseEntity.status(200).body(created);
     }
-
 
     @GetMapping("/list")
     public List<Order> allOrders() {
@@ -45,5 +44,15 @@ public class OrderController {
     public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
         orderService.cancelOrder(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/will/deliver/{id}")
+    public ResponseEntity<Order> willDeliver(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.willDeliver(id));
+    }
+
+    @PutMapping("/delivered/{id}")
+    public ResponseEntity<Order> delivered(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.delivered(id));
     }
 }
