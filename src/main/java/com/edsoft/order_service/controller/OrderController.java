@@ -1,7 +1,7 @@
 package com.edsoft.order_service.controller;
 
+import com.edsoft.order_service.data.OrderByRoomResponse;
 import com.edsoft.order_service.data.OrderCreateRequest;
-import com.edsoft.order_service.data.OrderListResponse;
 import com.edsoft.order_service.model.Order;
 import com.edsoft.order_service.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +56,8 @@ public class OrderController {
         return ResponseEntity.ok(orderService.delivered(id));
     }
 
-    @GetMapping("/list/room/{roomNo}")
-    public ResponseEntity<List<OrderByRoomResponse>> findOrderByRoom(@PathVariable String roomNo) {
-        return ResponseEntity.ok(orderService.listOrderByRoomNo(roomNo));
+    @GetMapping("/list/room")
+    public ResponseEntity<List<OrderByRoomResponse>> findOrderByRoom() {
+        return ResponseEntity.ok(orderService.listOrderByRoomNo());
     }
 }

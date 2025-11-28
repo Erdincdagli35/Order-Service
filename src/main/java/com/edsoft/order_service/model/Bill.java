@@ -1,7 +1,6 @@
 package com.edsoft.order_service.model;
 
 import jakarta.persistence.Embeddable;
-import lombok.Data;
 
 import java.math.BigDecimal;
 
@@ -19,7 +18,7 @@ public class Bill {
         this.productName = productName;
     }
 
-    public Integer getPiece() {
+    public long getPiece() {
         return piece;
     }
 

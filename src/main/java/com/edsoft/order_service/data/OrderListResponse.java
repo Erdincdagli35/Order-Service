@@ -3,7 +3,6 @@ package com.edsoft.order_service.data;
 import com.edsoft.order_service.model.Order;
 import lombok.Data;
 
-import java.math.BigDecimal;
 
 @Data
 public class OrderListResponse {

@@ -2,7 +2,7 @@ package com.edsoft.order_service.service;
 
 import com.edsoft.order_service.client.ProductClient;
 import com.edsoft.order_service.client.RoomClient;
-import com.edsoft.order_service.controller.OrderByRoomResponse;
+import com.edsoft.order_service.data.OrderByRoomResponse;
 import com.edsoft.order_service.data.OrderCreateRequest;
 import com.edsoft.order_service.data.ProductResponse;
 import com.edsoft.order_service.data.RoomResponse;
@@ -18,12 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class OrderService {
@@ -183,33 +178,70 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public List<OrderByRoomResponse> listOrderByRoomNo(String roomNo) {
+    public List<OrderByRoomResponse> listOrderByRoomNo() {
         List<RoomResponse> roomResponses = roomClient.getAllRoom();
-        List<Order> orderList = listAllOrders();
+        if (roomResponses == null || roomResponses.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        List<OrderByRoomResponse> orderByRoomResponses = new ArrayList<>();
+        List<Order> allOrders = listAllOrders();
+        Map<String, Stats> statsMap = new HashMap<>();
 
-        for (Order order : orderList){
-            for (RoomResponse roomResponse :roomResponses){
-                if (order.getRoomNo().equals(roomNo) && roomResponse.getRoomNo().equals(roomNo)){
-                    orderByRoomResponses.add(appendOrderByResponseData(order,roomNo));
-                }
+        if (allOrders != null && !allOrders.isEmpty()) {
+            for (Order order : allOrders) {
+                if (order == null) continue;
+                String rNo = order.getRoomNo();
+                if (rNo == null) continue;
+
+                Stats s = statsMap.computeIfAbsent(rNo, k -> new Stats());
+                s.incrementOrderCount();
+
+                // Buradaki önemli değişiklik: artık order.getTotal() kullanıyoruz
+                BigDecimal orderTotal = order.getTotal() == null ? BigDecimal.ZERO : order.getTotal();
+                s.addRevenue(orderTotal);
             }
         }
 
-        return orderByRoomResponses;
+        List<OrderByRoomResponse> result = new ArrayList<>(roomResponses.size());
+        for (RoomResponse room : roomResponses) {
+            if (room == null) continue;
+            String rNo = room.getRoomNo();
+            Stats s = (rNo == null) ? null : statsMap.get(rNo);
+
+            int orderCount = (s == null) ? 0 : s.getOrderCount();
+            BigDecimal totalRevenue = (s == null) ? BigDecimal.ZERO : s.getTotalRevenue();
+
+            OrderByRoomResponse resp = buildOrderByRoomResponse(room, orderCount, totalRevenue);
+            result.add(resp);
+        }
+
+        // opsiyonel: odaları roomNo'ya göre sırala
+        result.sort(Comparator.comparing(OrderByRoomResponse::getRoomNo, Comparator.nullsLast(String::compareTo)));
+
+        return result;
     }
 
-    private OrderByRoomResponse appendOrderByResponseData(Order order, String roomNo) {
-        OrderByRoomResponse orderByRoomResponse = new OrderByRoomResponse();
+    /** Basit aggregation taşıyıcı sınıfı */
+    private static class Stats {
+        private int orderCount = 0;
+        private BigDecimal totalRevenue = BigDecimal.ZERO;
 
-        orderByRoomResponse.setOrderId(order.getId());
-        orderByRoomResponse.setTotal(order.getTotal());
-        orderByRoomResponse.setStatus(order.getStatus());
-        orderByRoomResponse.setBills(order.getBills());
-        orderByRoomResponse.setPersonalId(order.getPersonalId());
-        orderByRoomResponse.setRoomNo(roomNo);
+        void incrementOrderCount() { orderCount++; }
+        void addRevenue(BigDecimal amount) {
+            if (amount != null) {
+                totalRevenue = totalRevenue.add(amount);
+            }
+        }
+        int getOrderCount() { return orderCount; }
+        BigDecimal getTotalRevenue() { return totalRevenue; }
+    }
 
-        return orderByRoomResponse;
+    private OrderByRoomResponse buildOrderByRoomResponse(RoomResponse room, int orderCount, BigDecimal totalRevenue) {
+        OrderByRoomResponse r = new OrderByRoomResponse();
+        r.setRoomNo(room.getRoomNo());
+        r.setDescription(room.getDescription());
+        r.setOrderCount(orderCount);
+        r.setTotalRevenue(totalRevenue == null ? BigDecimal.ZERO : totalRevenue);
+        return r;
     }
 }
