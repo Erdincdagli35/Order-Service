@@ -1,8 +1,11 @@
 package com.edsoft.order_service.service;
 
 import com.edsoft.order_service.client.ProductClient;
+import com.edsoft.order_service.client.RoomClient;
+import com.edsoft.order_service.controller.OrderByRoomResponse;
 import com.edsoft.order_service.data.OrderCreateRequest;
 import com.edsoft.order_service.data.ProductResponse;
+import com.edsoft.order_service.data.RoomResponse;
 import com.edsoft.order_service.model.Bill;
 import com.edsoft.order_service.model.Order;
 import com.edsoft.order_service.repository.OrderRepository;
@@ -29,10 +32,14 @@ public class OrderService {
     private final ProductClient productClient;
 
     @Autowired
+    private final RoomClient roomClient;
+
+    @Autowired
     private final OrderRepository orderRepository;
 
-    public OrderService(ProductClient productClient, OrderRepository orderRepository) {
+    public OrderService(ProductClient productClient, RoomClient roomClient, OrderRepository orderRepository) {
         this.productClient = productClient;
+        this.roomClient = roomClient;
         this.orderRepository = orderRepository;
     }
 
@@ -91,6 +98,7 @@ public class OrderService {
         order.setTotal(total.setScale(2, RoundingMode.HALF_UP));
         order.setBills(bills);
         order.setPersonalId(req.getPersonalId());
+        order.setRoomNo(req.getRoomNo());
 
         return orderRepository.save(order);
     }
@@ -173,5 +181,35 @@ public class OrderService {
         Order order = orderRepository.findOneById(id);
         order.setStatus("Delivered");
         return orderRepository.save(order);
+    }
+
+    public List<OrderByRoomResponse> listOrderByRoomNo(String roomNo) {
+        List<RoomResponse> roomResponses = roomClient.getAllRoom();
+        List<Order> orderList = listAllOrders();
+
+        List<OrderByRoomResponse> orderByRoomResponses = new ArrayList<>();
+
+        for (Order order : orderList){
+            for (RoomResponse roomResponse :roomResponses){
+                if (order.getRoomNo().equals(roomNo) && roomResponse.getRoomNo().equals(roomNo)){
+                    orderByRoomResponses.add(appendOrderByResponseData(order,roomNo));
+                }
+            }
+        }
+
+        return orderByRoomResponses;
+    }
+
+    private OrderByRoomResponse appendOrderByResponseData(Order order, String roomNo) {
+        OrderByRoomResponse orderByRoomResponse = new OrderByRoomResponse();
+
+        orderByRoomResponse.setOrderId(order.getId());
+        orderByRoomResponse.setTotal(order.getTotal());
+        orderByRoomResponse.setStatus(order.getStatus());
+        orderByRoomResponse.setBills(order.getBills());
+        orderByRoomResponse.setPersonalId(order.getPersonalId());
+        orderByRoomResponse.setRoomNo(roomNo);
+
+        return orderByRoomResponse;
     }
 }

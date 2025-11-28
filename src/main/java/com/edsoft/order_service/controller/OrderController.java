@@ -55,4 +55,9 @@ public class OrderController {
     public ResponseEntity<Order> delivered(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.delivered(id));
     }
+
+    @GetMapping("/list/room/{roomNo}")
+    public ResponseEntity<List<OrderByRoomResponse>> findOrderByRoom(@PathVariable String roomNo) {
+        return ResponseEntity.ok(orderService.listOrderByRoomNo(roomNo));
+    }
 }

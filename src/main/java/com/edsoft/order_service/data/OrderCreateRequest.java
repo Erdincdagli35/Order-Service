@@ -9,6 +9,7 @@ import java.util.List;
 public class OrderCreateRequest {
     private List<OrderItemRequest> items;
     private BigDecimal personalId;
+    private String roomNo;
 
     @Data
     public static class OrderItemRequest {
@@ -55,5 +56,13 @@ public class OrderCreateRequest {
 
     public void setPersonalId(BigDecimal personalId) {
         this.personalId = personalId;
+    }
+
+    public String getRoomNo() {
+        return roomNo;
+    }
+
+    public void setRoomNo(String roomNo) {
+        this.roomNo = roomNo;
     }
 }
