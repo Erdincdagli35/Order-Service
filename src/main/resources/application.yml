@@ -4,9 +4,9 @@ address: 0.0.0.0
 
 spring:
   datasource:
-    url: jdbc:postgresql://crossover.proxy.rlwy.net:31377/railway
+    url: jdbc:postgresql://hopper.proxy.rlwy.net:12135/railway
     username: postgres
-    password: nMpDMwZgOKrKFsRiJjByypIMgHLgdXIb
+    password: yzUZHXEUVmJdPmEfjImzaoefoyRMloQo
   jpa:
     hibernate:
       ddl-auto: update
