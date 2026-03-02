@@ -25,7 +25,7 @@ public class Order {
     @CollectionTable(name = "order_bills", joinColumns = @JoinColumn(name = "order_id"))
     private List<Bill> bills = new ArrayList<>();
 
-    private BigDecimal personalId;
+    private String personalName;
 
     private String roomNo;
 
@@ -69,12 +69,12 @@ public class Order {
         this.bills = bills;
     }
 
-    public BigDecimal getPersonalId() {
-        return personalId;
+    public String getPersonalName() {
+        return personalName;
     }
 
-    public void setPersonalId(BigDecimal personalId) {
-        this.personalId = personalId;
+    public void setPersonalName(String personalName) {
+        this.personalName = personalName;
     }
 
     public String getRoomNo() {

@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class OrderCreateRequest {
     private List<OrderItemRequest> items;
-    private BigDecimal personalId;
+    private String personalName;
     private String roomNo;
 
     @Data
@@ -50,12 +50,12 @@ public class OrderCreateRequest {
         this.items = items;
     }
 
-    public BigDecimal getPersonalId() {
-        return personalId;
+    public String getPersonalName() {
+        return personalName;
     }
 
-    public void setPersonalId(BigDecimal personalId) {
-        this.personalId = personalId;
+    public void setPersonalName(String personalName) {
+        this.personalName = personalName;
     }
 
     public String getRoomNo() {

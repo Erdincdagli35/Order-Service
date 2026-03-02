@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 public class Bill {
     private String productName;
     private Integer piece;
-    private BigDecimal personalId;
+    private String personalName;
 
     public String getProductName() {
         return productName;
@@ -26,11 +26,11 @@ public class Bill {
         this.piece = piece;
     }
 
-    public BigDecimal getPersonalId() {
-        return personalId;
+    public String getPersonalName() {
+        return personalName;
     }
 
-    public void setPersonalId(BigDecimal personalId) {
-        this.personalId = personalId;
+    public void setPersonalName(String personalName) {
+        this.personalName = personalName;
     }
 }

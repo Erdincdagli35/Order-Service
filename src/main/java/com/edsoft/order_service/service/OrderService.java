@@ -83,7 +83,7 @@ public class OrderService {
             Bill bill = new Bill();
             bill.setProductName(product.getName());
             bill.setPiece(qty);
-            bill.setPersonalId(req.getPersonalId());
+            bill.setPersonalName(req.getPersonalName());
             bills.add(bill);
         }
 
@@ -92,7 +92,7 @@ public class OrderService {
         order.setStatus("Pending");
         order.setTotal(total.setScale(2, RoundingMode.HALF_UP));
         order.setBills(bills);
-        order.setPersonalId(req.getPersonalId());
+        order.setPersonalName(req.getPersonalName());
         order.setRoomNo(req.getRoomNo());
 
         return orderRepository.save(order);
