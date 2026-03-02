@@ -40,6 +40,16 @@ public class OrderController {
         return ResponseEntity.ok(orderService.listOrder(id));
     }
 
+    @GetMapping("/list/will/deliver/")
+    public List<Order> allOrdersWillDeliver() {
+        return orderService.allOrdersWillDeliver();
+    }
+
+    @GetMapping("/list/will/deliver/customer/{roomNo}")
+    public List<Order> allOrdersWillDeliverCustomer(@PathVariable String roomNo) {
+        return orderService.allOrdersWillDeliverCustomer(roomNo);
+    }
+
     @DeleteMapping("/cancel/{id}")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
         orderService.cancelOrder(id);

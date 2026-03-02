@@ -221,6 +221,32 @@ public class OrderService {
         return result;
     }
 
+    public List<Order> allOrdersWillDeliver() {
+        List<Order> allOrders = listAllOrders();
+
+        List<Order> allOrdersByCustomer = new ArrayList<>();
+        for (Order order : allOrders){
+            if (order.getStatus().equals("Will Deliver")){
+                allOrdersByCustomer.add(order);
+            }
+        }
+
+        return allOrdersByCustomer;
+    }
+
+    public List<Order> allOrdersWillDeliverCustomer(String roomNo) {
+        List<Order> allOrders = listAllOrders();
+
+        List<Order> allOrdersByCustomer = new ArrayList<>();
+        for (Order order : allOrders){
+            if (roomNo.equals(order.getRoomNo()) && order.getStatus().equals("Will Deliver")){
+                allOrdersByCustomer.add(order);
+            }
+        }
+
+        return allOrdersByCustomer;
+    }
+
     /** Basit aggregation taşıyıcı sınıfı */
     private static class Stats {
         private int orderCount = 0;
