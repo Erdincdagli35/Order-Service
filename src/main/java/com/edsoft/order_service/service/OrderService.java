@@ -226,7 +226,7 @@ public class OrderService {
 
         List<Order> allOrdersByCustomer = new ArrayList<>();
         for (Order order : allOrders){
-            if (order.getStatus().equals("Will Deliver")){
+            if (order.getStatus().equals("Will Deliver") || order.getStatus().equals("Pending")){
                 allOrdersByCustomer.add(order);
             }
         }
