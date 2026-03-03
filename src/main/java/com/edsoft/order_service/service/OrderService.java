@@ -9,6 +9,7 @@ import com.edsoft.order_service.data.RoomResponse;
 import com.edsoft.order_service.model.Bill;
 import com.edsoft.order_service.model.Order;
 import com.edsoft.order_service.repository.OrderRepository;
+import jakarta.mail.internet.MimeMessage;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,10 +33,15 @@ public class OrderService {
     @Autowired
     private final OrderRepository orderRepository;
 
-    public OrderService(ProductClient productClient, RoomClient roomClient, OrderRepository orderRepository) {
+    @Autowired
+    private final MailService mailService;
+
+    public OrderService(ProductClient productClient, RoomClient roomClient,
+                        OrderRepository orderRepository, MailService mailService) {
         this.productClient = productClient;
         this.roomClient = roomClient;
         this.orderRepository = orderRepository;
+        this.mailService = mailService;
     }
 
     public Order createOrder(OrderCreateRequest req) throws Exception {
@@ -95,9 +101,11 @@ public class OrderService {
         order.setPersonalName(req.getPersonalName());
         order.setRoomNo(req.getRoomNo());
 
-        return orderRepository.save(order);
-    }
+        Order savedOrder = orderRepository.save(order);
+        mailService.sendOrderMail(savedOrder, "edorderflow@gmail.com");
 
+        return savedOrder;
+    }
 
     public List<Order> listAllOrders() {
         return orderRepository.findAllByOrderByIdDesc();
