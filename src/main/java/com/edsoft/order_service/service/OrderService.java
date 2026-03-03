@@ -99,6 +99,10 @@ public class OrderService {
     }
 
 
+    public List<Order> listAllOrders() {
+        return orderRepository.findAllByOrderByIdDesc();
+    }
+
     public List<Order> listAllOrders(String roomNo) {
         if (roomNo != null && !roomNo.isBlank()) {
             return orderRepository.findAllByRoomNoOrderByIdDesc(roomNo);
