@@ -46,7 +46,7 @@ public class MailService {
         helper.setTo(toMail);
         helper.setSubject("Siparişiniz Alındı");
         helper.setText(content.toString(), true);
-        helper.setFrom("erdincdagli35@hotmail.com");
+        helper.setFrom("edorderflow@gmail.com");
 
         mailSender.send(message);
     }

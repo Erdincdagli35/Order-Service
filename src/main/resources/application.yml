@@ -15,15 +15,17 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   mail:
     host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    port: 465
+    username: edorderflow@gmail.com
+    password: erdincdaglifb
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+          ssl:
+            trust: smtp.gmail.com
 product:
   service:
     url: https://productservice.up.railway.app
