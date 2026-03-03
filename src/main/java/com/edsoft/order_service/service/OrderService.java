@@ -99,9 +99,12 @@ public class OrderService {
     }
 
 
-    public List<Order> listAllOrders() {
-        List<Order> orders = orderRepository.findAllByOrderByIdDesc();
-        return orders;
+    public List<Order> listAllOrders(String roomNo) {
+        if (roomNo != null && !roomNo.isBlank()) {
+            return orderRepository.findAllByRoomNoOrderByIdDesc(roomNo);
+        }
+
+        return orderRepository.findAllByOrderByIdDesc();
     }
 
     public @Nullable Order listOrder(Long id) {

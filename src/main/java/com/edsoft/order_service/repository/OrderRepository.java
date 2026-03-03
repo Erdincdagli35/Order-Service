@@ -12,4 +12,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Nullable Order findOneById(Long id);
 
     List<Order> findAllByOrderByIdDesc();
+
+    List<Order> findAllByRoomNoOrderByIdDesc(String roomNo);
+
 }

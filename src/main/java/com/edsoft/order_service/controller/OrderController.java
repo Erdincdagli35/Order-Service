@@ -25,8 +25,8 @@ public class OrderController {
     }
 
     @GetMapping("/list")
-    public List<Order> allOrders() {
-        return orderService.listAllOrders();
+    public List<Order> allOrders(@RequestParam(required = false) String roomNo) {
+        return orderService.listAllOrders(roomNo);
     }
 
     @PutMapping("/edit/{id}")
