@@ -33,15 +33,14 @@ public class OrderService {
     @Autowired
     private final OrderRepository orderRepository;
 
-    @Autowired
-    private final MailService mailService;
+//    @Autowired
+//    private final MailService mailService;
 
     public OrderService(ProductClient productClient, RoomClient roomClient,
-                        OrderRepository orderRepository, MailService mailService) {
+                        OrderRepository orderRepository) {
         this.productClient = productClient;
         this.roomClient = roomClient;
         this.orderRepository = orderRepository;
-        this.mailService = mailService;
     }
 
     public Order createOrder(OrderCreateRequest req) throws Exception {
@@ -102,7 +101,7 @@ public class OrderService {
         order.setRoomNo(req.getRoomNo());
 
         Order savedOrder = orderRepository.save(order);
-        mailService.sendOrderMail(savedOrder, "edorderflow@gmail.com");
+//        mailService.sendOrderMail(savedOrder, "edorderflow@gmail.com");
 
         return savedOrder;
     }
