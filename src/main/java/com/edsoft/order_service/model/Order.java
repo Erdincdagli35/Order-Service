@@ -15,7 +15,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String status = "No Progress";
+    private String status = "İşlem Yok";
 
     private BigDecimal total;
 

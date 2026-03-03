@@ -129,7 +129,7 @@ public class OrderService {
 
         List<Bill> bills = new ArrayList<>();
 
-        order.setStatus("Pending");
+        order.setStatus("Sipariş Alındı");
 
         // 2) Toplam fiyatı hesapla
         BigDecimal total = BigDecimal.ZERO;
@@ -168,13 +168,13 @@ public class OrderService {
 
     public Order willDeliver(Long id) {
         Order order = orderRepository.findOneById(id);
-        order.setStatus("Will Deliver");
+        order.setStatus("Yolda");
         return orderRepository.save(order);
     }
 
     public  Order delivered(Long id) {
         Order order = orderRepository.findOneById(id);
-        order.setStatus("Delivered");
+        order.setStatus("Teslim edildi");
         return orderRepository.save(order);
     }
 
@@ -226,7 +226,7 @@ public class OrderService {
 
         List<Order> allOrdersByCustomer = new ArrayList<>();
         for (Order order : allOrders){
-            if (order.getStatus().equals("Will Deliver") || order.getStatus().equals("Pending")){
+            if (order.getStatus().equals("Yolda") || order.getStatus().equals("Hazırlanıyor")){
                 allOrdersByCustomer.add(order);
             }
         }
@@ -239,7 +239,7 @@ public class OrderService {
 
         List<Order> allOrdersByCustomer = new ArrayList<>();
         for (Order order : allOrders){
-            if (roomNo.equals(order.getRoomNo()) && order.getStatus().equals("Will Deliver")){
+            if (roomNo.equals(order.getRoomNo()) && order.getStatus().equals("Yolda")){
                 allOrdersByCustomer.add(order);
             }
         }
