@@ -19,11 +19,16 @@ public class KafkaOrderEventConsumer {
     public void listen(OrderCreatedEvent event){
         System.out.println("✅ EVENT Listele -> " + event);
 
-        OrderEventEntity entity = new OrderEventEntity();
-        entity.setOrderId(event.getOrderId());
-        entity.setRoomNo(event.getRoomNo());
-        entity.setPrice(event.getPrice());
-
-        repository.save(entity);
+        try {
+            OrderEventEntity entity = new OrderEventEntity();
+            entity.setOrderId(event.getOrderId());
+            entity.setRoomNo(event.getRoomNo());
+            entity.setPrice(event.getPrice());
+            System.out.println("✅ EVENT setter -> " + event);
+            repository.save(entity);
+            System.out.println("✅ EVENT saved -> " + event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
