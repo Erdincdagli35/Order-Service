@@ -9,6 +9,8 @@ import com.edsoft.order_service.data.RoomResponse;
 import com.edsoft.order_service.model.Bill;
 import com.edsoft.order_service.model.Order;
 import com.edsoft.order_service.model.OrderCreatedEvent;
+import com.edsoft.order_service.model.OrderEventEntity;
+import com.edsoft.order_service.repository.OrderEventRepository;
 import com.edsoft.order_service.repository.OrderRepository;
 import jakarta.mail.internet.MimeMessage;
 import org.jspecify.annotations.Nullable;
@@ -37,16 +39,18 @@ public class OrderService {
     @Autowired
     private final OrderEventProducer orderEventProducer;
 
-
+    @Autowired
+    private final OrderEventRepository orderEventRepository;
 //    @Autowired
 //    private final MailService mailService;
 
     public OrderService(ProductClient productClient, RoomClient roomClient,
-                        OrderRepository orderRepository, OrderEventProducer orderEventProducer) {
+                        OrderRepository orderRepository, OrderEventProducer orderEventProducer, OrderEventRepository orderEventRepository) {
         this.productClient = productClient;
         this.roomClient = roomClient;
         this.orderRepository = orderRepository;
         this.orderEventProducer = orderEventProducer;
+        this.orderEventRepository = orderEventRepository;
     }
 
     public Order createOrder(OrderCreateRequest req) throws Exception {
@@ -127,10 +131,18 @@ public class OrderService {
 
         event.setPrice(BigDecimal.valueOf(total));
 
-        System.out.println("✅ EVENT GONDERILIYOR -> " + event);
+        System.out.println("✅ EVENT GONDERILIYOR -> " + event.toString());
         orderEventProducer.sendOrderCreatedEvent(event);
 
-        System.out.println("✅ EVENT GELDI -> " + event);
+        System.out.println("✅ EVENT GELDI -> " + event.toString());
+
+        OrderEventEntity entity = new OrderEventEntity();
+        entity.setOrderId(event.getOrderId());
+        entity.setRoomNo(event.getRoomNo());
+        entity.setPrice(event.getPrice());
+        System.out.println("✅ EVENT setter -> " + event);
+        orderEventRepository.save(entity);
+        System.out.println("✅ EVENT saved -> " + event);
     }
 
     public List<Order> listAllOrders() {

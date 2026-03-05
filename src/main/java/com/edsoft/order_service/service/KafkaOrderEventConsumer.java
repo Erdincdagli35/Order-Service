@@ -15,7 +15,7 @@ public class KafkaOrderEventConsumer {
         this.repository = repository;
     }
 
-    @KafkaListener(topics = "order-created-topic", groupId = "order-event-group")
+    //@KafkaListener(topics = "order-created-topic", groupId = "order-event-group")
     public void listen(OrderCreatedEvent event){
         System.out.println("✅ EVENT Listele -> " + event);
 

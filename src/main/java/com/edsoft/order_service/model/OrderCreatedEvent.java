@@ -41,4 +41,13 @@ public class OrderCreatedEvent {
     public void setPrice(BigDecimal price) {
         this.price = price;
     }
+
+    @Override
+    public String toString() {
+        return "OrderCreatedEvent{" +
+                "orderId=" + orderId +
+                ", roomNo='" + roomNo + '\'' +
+                ", price=" + price +
+                '}';
+    }
 }
