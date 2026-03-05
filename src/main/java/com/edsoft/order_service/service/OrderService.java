@@ -8,6 +8,7 @@ import com.edsoft.order_service.data.ProductResponse;
 import com.edsoft.order_service.data.RoomResponse;
 import com.edsoft.order_service.model.Bill;
 import com.edsoft.order_service.model.Order;
+import com.edsoft.order_service.model.OrderCreatedEvent;
 import com.edsoft.order_service.repository.OrderRepository;
 import jakarta.mail.internet.MimeMessage;
 import org.jspecify.annotations.Nullable;
@@ -33,14 +34,19 @@ public class OrderService {
     @Autowired
     private final OrderRepository orderRepository;
 
+    @Autowired
+    private final OrderEventProducer orderEventProducer;
+
+
 //    @Autowired
 //    private final MailService mailService;
 
     public OrderService(ProductClient productClient, RoomClient roomClient,
-                        OrderRepository orderRepository) {
+                        OrderRepository orderRepository, OrderEventProducer orderEventProducer) {
         this.productClient = productClient;
         this.roomClient = roomClient;
         this.orderRepository = orderRepository;
+        this.orderEventProducer = orderEventProducer;
     }
 
     public Order createOrder(OrderCreateRequest req) throws Exception {
@@ -103,7 +109,28 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 //        mailService.sendOrderMail(savedOrder, "edorderflow@gmail.com");
 
+        createOrderCreatedEvent(savedOrder);
+
         return savedOrder;
+    }
+
+    private void createOrderCreatedEvent(Order savedOrder) {
+
+        OrderCreatedEvent event = new OrderCreatedEvent();
+        event.setOrderId(savedOrder.getId());
+        event.setRoomNo(savedOrder.getRoomNo());
+        int total = 0;
+
+        for (Bill bill : savedOrder.getBills()) {
+            total += (int) bill.getPiece();
+        }
+
+        event.setPrice(BigDecimal.valueOf(total));
+
+        System.out.println("✅ EVENT GONDERILIYOR -> " + event);
+        orderEventProducer.sendOrderCreatedEvent(event);
+
+        System.out.println("✅ EVENT GELDI -> " + event);
     }
 
     public List<Order> listAllOrders() {
