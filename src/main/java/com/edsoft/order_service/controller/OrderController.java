@@ -29,12 +29,6 @@ public class OrderController {
         return orderService.listAllOrders(roomNo);
     }
 
-    @PutMapping("/edit/{id}")
-    public ResponseEntity<Order> editOrder(@PathVariable Long id, @RequestBody OrderCreateRequest req) {
-        Order edited = orderService.editOrder(id, req);
-        return ResponseEntity.status(200).body(edited);
-    }
-
     @GetMapping("/list/{id}")
     public ResponseEntity<Order> findOrder(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.listOrder(id));

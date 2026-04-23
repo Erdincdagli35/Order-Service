@@ -8,20 +8,21 @@ import com.edsoft.order_service.data.ProductResponse;
 import com.edsoft.order_service.data.RoomResponse;
 import com.edsoft.order_service.model.Bill;
 import com.edsoft.order_service.model.Order;
-import com.edsoft.order_service.model.OrderCreatedEvent;
-import com.edsoft.order_service.model.OrderEventEntity;
-import com.edsoft.order_service.repository.OrderEventRepository;
 import com.edsoft.order_service.repository.OrderRepository;
-import jakarta.mail.internet.MimeMessage;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -36,22 +37,59 @@ public class OrderService {
     @Autowired
     private final OrderRepository orderRepository;
 
-    @Autowired
-    private final OrderEventProducer orderEventProducer;
-
-    @Autowired
-    private final OrderEventRepository orderEventRepository;
-//    @Autowired
-//    private final MailService mailService;
+    // Aldığımız bilgiler (Güvenlik için bunları config dosyasından çekmek daha iyidir)
+    private static final String TELEGRAM_TOKEN = "8793995144:AAHdC4lPxuuVplXbqpQcYAAdbY5fV7KC87s";
+    private static final String CHAT_ID = "8416899324";
 
     public OrderService(ProductClient productClient, RoomClient roomClient,
-                        OrderRepository orderRepository, OrderEventProducer orderEventProducer, OrderEventRepository orderEventRepository) {
+                        OrderRepository orderRepository) {
         this.productClient = productClient;
         this.roomClient = roomClient;
         this.orderRepository = orderRepository;
-        this.orderEventProducer = orderEventProducer;
-        this.orderEventRepository = orderEventRepository;
     }
+
+    @Async
+    // Telegram'a istek atan yardımcı metod
+    private void sendTelegramNotification(String messageText) {
+        try {
+            String encodedMessage = URLEncoder.encode(messageText, StandardCharsets.UTF_8.toString());
+
+            String urlString = String.format(
+                    "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s",
+                    TELEGRAM_TOKEN, CHAT_ID, encodedMessage
+            );
+
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            int responseCode = conn.getResponseCode();
+            System.out.println("Telegram response code: " + responseCode);
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(
+                            responseCode >= 200 && responseCode < 300
+                                    ? conn.getInputStream()
+                                    : conn.getErrorStream()
+                    )
+            );
+
+            String line;
+            StringBuilder response = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+
+            System.out.println("Telegram response body: " + response);
+
+            conn.disconnect();
+
+        } catch (Exception e) {
+            e.printStackTrace(); // 🔥 BUNU DEĞİŞTİR (çok önemli)
+        }
+    }
+
 
     public Order createOrder(OrderCreateRequest req) throws Exception {
 
@@ -111,39 +149,19 @@ public class OrderService {
         order.setRoomNo(req.getRoomNo());
 
         Order savedOrder = orderRepository.save(order);
-//        mailService.sendOrderMail(savedOrder, "edorderflow@gmail.com");
 
-        createOrderCreatedEvent(savedOrder);
+        String mesaj = "🚀 Yeni Sipariş Öğesi Eklendi!\n" +
+                "Oda No: " + (savedOrder.getRoomNo()) + "\n" +
+                "Fiyat: " + savedOrder.getTotal() + "\n" +
+                "Sipariş Durumu : " + savedOrder.getStatus() + "\n"    ;
+
+
+        sendTelegramNotification(mesaj);
+
 
         return savedOrder;
     }
 
-    private void createOrderCreatedEvent(Order savedOrder) {
-
-        OrderCreatedEvent event = new OrderCreatedEvent();
-        event.setOrderId(savedOrder.getId());
-        event.setRoomNo(savedOrder.getRoomNo());
-        int total = 0;
-
-        for (Bill bill : savedOrder.getBills()) {
-            total += (int) bill.getPiece();
-        }
-
-        event.setPrice(BigDecimal.valueOf(total));
-
-        System.out.println("✅ EVENT GONDERILIYOR -> " + event.toString());
-        orderEventProducer.sendOrderCreatedEvent(event);
-
-        System.out.println("✅ EVENT GELDI -> " + event.toString());
-
-        OrderEventEntity entity = new OrderEventEntity();
-        entity.setOrderId(event.getOrderId());
-        entity.setRoomNo(event.getRoomNo());
-        entity.setPrice(event.getPrice());
-        System.out.println("✅ EVENT setter -> " + event);
-        orderEventRepository.save(entity);
-        System.out.println("✅ EVENT saved -> " + event);
-    }
 
     public List<Order> listAllOrders() {
         return orderRepository.findAllByOrderByIdDesc();
@@ -161,59 +179,6 @@ public class OrderService {
         return orderRepository.findOneById(id);
     }
 
-    @Transactional
-    public Order editOrder(Long orderId, OrderCreateRequest req) {
-        // 1) Order'ı bul
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
-
-        // 1) Ürünleri çek
-        List<Long> productIds = req.getItems()
-                .stream()
-                .map(OrderCreateRequest.OrderItemRequest::getProductId)
-                .toList();
-
-        List<ProductResponse> products = new ArrayList<>();
-
-        for (Long productId : productIds) {
-            ProductResponse product = productClient.getProduct(productId);
-            products.add(product);
-        }
-
-        List<Bill> bills = new ArrayList<>();
-
-        order.setStatus("Sipariş Alındı");
-
-        // 2) Toplam fiyatı hesapla
-        BigDecimal total = BigDecimal.ZERO;
-
-        for (int i = 0; i < req.getItems().size(); i++) {
-            OrderCreateRequest.OrderItemRequest itemReq = req.getItems().get(i);
-            ProductResponse product = products.get(i);
-
-            BigDecimal price = product.getPrice() != null
-                    ? product.getPrice()
-                    : BigDecimal.ZERO;
-
-            BigDecimal itemTotal = price.multiply(BigDecimal.valueOf(itemReq.getQty()));
-
-            total = total.add(itemTotal);
-            Bill bill = new Bill();
-
-            for (OrderCreateRequest.OrderItemRequest itemRequest : req.getItems()) {
-                bill.setPiece(itemRequest.getQty());
-            }
-
-            bill.setProductName(product.getName());
-            bills.add(bill);
-        }
-
-        order.setTotal(total);
-        order.setBills(bills);
-
-        return orderRepository.save(order);
-    }
-
     public void cancelOrder(Long id) {
         Order order = orderRepository.findOneById(id);
         orderRepository.delete(order);
@@ -225,7 +190,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public  Order delivered(Long id) {
+    public Order delivered(Long id) {
         Order order = orderRepository.findOneById(id);
         order.setStatus("Teslim edildi");
         return orderRepository.save(order);
@@ -278,8 +243,8 @@ public class OrderService {
         List<Order> allOrders = listAllOrders();
 
         List<Order> allOrdersByCustomer = new ArrayList<>();
-        for (Order order : allOrders){
-            if (order.getStatus().equals("Yolda") || order.getStatus().equals("Hazırlanıyor")){
+        for (Order order : allOrders) {
+            if (order.getStatus().equals("Yolda") || order.getStatus().equals("Hazırlanıyor")) {
                 allOrdersByCustomer.add(order);
             }
         }
@@ -291,8 +256,8 @@ public class OrderService {
         List<Order> allOrders = listAllOrders();
 
         List<Order> allOrdersByCustomer = new ArrayList<>();
-        for (Order order : allOrders){
-            if (roomNo.equals(order.getRoomNo()) && order.getStatus().equals("Yolda")){
+        for (Order order : allOrders) {
+            if (roomNo.equals(order.getRoomNo()) && order.getStatus().equals("Yolda")) {
                 allOrdersByCustomer.add(order);
             }
         }
@@ -300,19 +265,30 @@ public class OrderService {
         return allOrdersByCustomer;
     }
 
-    /** Basit aggregation taşıyıcı sınıfı */
+    /**
+     * Basit aggregation taşıyıcı sınıfı
+     */
     private static class Stats {
         private int orderCount = 0;
         private BigDecimal totalRevenue = BigDecimal.ZERO;
 
-        void incrementOrderCount() { orderCount++; }
+        void incrementOrderCount() {
+            orderCount++;
+        }
+
         void addRevenue(BigDecimal amount) {
             if (amount != null) {
                 totalRevenue = totalRevenue.add(amount);
             }
         }
-        int getOrderCount() { return orderCount; }
-        BigDecimal getTotalRevenue() { return totalRevenue; }
+
+        int getOrderCount() {
+            return orderCount;
+        }
+
+        BigDecimal getTotalRevenue() {
+            return totalRevenue;
+        }
     }
 
     private OrderByRoomResponse buildOrderByRoomResponse(RoomResponse room, int orderCount, BigDecimal totalRevenue) {
